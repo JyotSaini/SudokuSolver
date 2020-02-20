@@ -1,14 +1,15 @@
 import numpy as py
+import copy
 
-unsolved_sudoku = [[0,8,7,0,0,0,2,0,1],
-                   [0,0,4,0,0,8,0,0,7],
-                   [0,0,0,1,7,0,0,0,0],
-                   [0,7,0,0,0,5,0,0,9],
-                   [6,0,0,0,8,0,0,0,2],
-                   [2,0,0,3,0,0,0,7,0],
-                   [0,0,0,0,6,9,0,0,0],
-                   [0,0,0,5,0,0,7,0,0],
-                   [9,0,5,0,0,0,1,3,0]]
+unsolved_sudoku = [[8,0,0,0,0,0,0,0,0],
+                   [0,0,3,6,0,0,0,0,0],
+                   [0,7,0,0,9,0,2,0,0],
+                   [0,5,0,0,0,7,0,0,0],
+                   [0,0,0,0,4,5,7,0,0],
+                   [0,0,0,1,0,0,0,3,0],
+                   [0,0,1,0,0,0,0,6,8],
+                   [0,0,8,5,0,0,0,1,0],
+                   [0,9,0,0,0,0,4,0,0]]
 
 possibles = [[[[] for i in range(9)] for i in range(9)] for i in range(9)] # First two dimensions denote row and column respectively, and the last one denotes the 9 possible values for the sudoku cell
 numOfPossibles = [[[] for i in range(9)] for i in range(9)] # A list to store the number of possible values for each element of the sudoku
@@ -215,11 +216,66 @@ def tallyNumOfPossibles(rowNum, colNum):
         totalForElement += possibles[rowNum][colNum][possible]
     numOfPossibles[rowNum][colNum] = totalForElement
 
-def sudokuHasZeroes():
+def sudokuHasZeroes(sudoku):
     for row in range(9):
         for col in range(9):
-            if unsolved_sudoku[row][col] is 0:
+            if sudoku[row][col] is 0:
                 return True
+
+    return False
+
+def sudokuIsNotVerified(sudoku):
+    for row in sudoku:
+        elemsTally = [1,1,1,1,1,1,1,1,1]
+
+        for elem in row:
+            elemsTally[elem - 1] = 0
+
+        for elem in elemsTally:
+            if elem == 1:
+                return True
+                
+    for col in range(9):
+        elemsTally = [1,1,1,1,1,1,1,1,1]
+
+        for row in range(9):
+            elemsTally[sudoku[row][col] - 1] = 0
+
+        for elem in elemsTally:
+            if elem == 1:
+                return True
+                
+    for boxRow in range(3):
+        for boxCol in range(3):
+            elemsTally = [1,1,1,1,1,1,1,1,1]
+
+            for row in range(boxRow * 3, (boxRow * 3) + 3):
+                for col in range(boxCol * 3, (boxCol * 3) + 3):
+                    elemsTally[sudoku[row][col] - 1] = 0
+
+            for elem in elemsTally:
+                if elem == 1:
+                    return True
+    return False
+
+def sudokuIsMaxedOut(origSudoku, sudoku):
+    maxSudoku = [[9,9,9,9,9,9,9,9,9],
+                 [9,9,9,9,9,9,9,9,9],
+                 [9,9,9,9,9,9,9,9,9],
+                 [9,9,9,9,9,9,9,9,9],
+                 [9,9,9,9,9,9,9,9,9],
+                 [9,9,9,9,9,9,9,9,9],
+                 [9,9,9,9,9,9,9,9,9],
+                 [9,9,9,9,9,9,9,9,9],
+                 [9,9,9,9,9,9,9,9,9]]
+
+    for row in range(9):
+        for col in range(9):
+            if origSudoku[row][col] > 0:
+                maxSudoku[row][col] = origSudoku[row][col]
+
+    if sudoku == maxSudoku:
+        return True
 
     return False
 
@@ -270,15 +326,155 @@ def eliminateObviousValues(rowNum, colNum):
 def printSudoku():
     print(py.matrix(unsolved_sudoku))
 
+def verifyLastElemHelper(row, col, box, lastElem):
+    for elem in row:
+        if elem == lastElem:
+            return False
+
+    for elem in col:
+        if elem == lastElem:
+            return False
+
+    for boxRow in box:
+        for elem in boxRow:
+            if elem == lastElem:
+                return False
+
+    return True
+
+def verifyLastElem(sudoku, rowNum, colNum):
+    row = [0,0,0,0,0,0,0,0,0]
+    col = [0,0,0,0,0,0,0,0,0]
+    box = [[0,0,0],[0,0,0],[0,0,0]]
+    elem = sudoku[rowNum][colNum]
+
+    for rowElemCounter in range(9):
+        row[rowElemCounter] = sudoku[rowNum][rowElemCounter]
+
+    for colElemCounter in range(9):
+        col[colElemCounter] = sudoku[colElemCounter][colNum]
+
+    for boxRowElemCounter in range((rowNum // 3) * 3, ((rowNum // 3) * 3) + 3):
+        for boxColElemCounter in range((colNum // 3) * 3, ((colNum // 3) * 3) + 3):
+            box[boxRowElemCounter % 3][boxColElemCounter % 3] = sudoku[boxRowElemCounter][boxColElemCounter]
+
+    row[colNum] = 0
+    col[rowNum] = 0
+    box[rowNum % 3][colNum % 3] = 0
+
+    return verifyLastElemHelper(row, col, box, elem)
+
+def increaseElem(row, col):
+    col += 1
+    if col > 8:
+        row += 1
+        col = 0
+
+    return [row, col]
+
+def decreaseElem(row, col):
+    col -= 1
+    if col < 0:
+        row -= 1
+        col = 8
+
+    return [row, col]
+
+def bruteforceSolution(origSudoku, sudoku):
+    currSudoku = copy.deepcopy(sudoku)
+    origSudokuLocs = copy.deepcopy(origSudoku)
+
+    for row in range(9):
+        for col in range(9):
+            if origSudokuLocs[row][col] > 0:
+                origSudokuLocs[row][col] = True
+            else:
+                origSudokuLocs[row][col] = False
+
+    row = 0
+    col = 0
+
+    while sudokuIsNotVerified(currSudoku):
+        if sudokuIsMaxedOut(origSudoku, currSudoku):
+            return False
+
+        if not origSudokuLocs[row][col]:
+            currSudoku[row][col] += 1
+            if currSudoku[row][col] > 9:
+                currSudoku[row][col] = 0
+                row = decreaseElem(row, col)[0]
+                col = decreaseElem(row, col)[1]
+                while origSudokuLocs[row][col]:
+                    row = decreaseElem(row, col)[0]
+                    col = decreaseElem(row, col)[1]
+            elif verifyLastElem(currSudoku, row, col):
+                row = increaseElem(row, col)[0]
+                col = increaseElem(row, col)[1]
+        else:
+            row = increaseElem(row, col)[0]
+            col = increaseElem(row, col)[1]
+
+    return currSudoku
+
+def tamperLastElemInSudoku(origSudoku, sudoku):
+    currSudoku = copy.deepcopy(sudoku)
+    origSudokuLocs = copy.deepcopy(origSudoku)
+
+    for row in range(9):
+        for col in range(9):
+            if origSudokuLocs[row][col] > 0:
+                origSudokuLocs[row][col] = True
+            else:
+                origSudokuLocs[row][col] = False
+
+    if sudokuIsMaxedOut(origSudoku, currSudoku):
+        return False
+
+    for row in reversed(range(9)):
+        for col in reversed(range(9)):
+            if not origSudokuLocs[row][col]:
+                currSudoku[row][col] += 1
+                if currSudoku[row][col] > 9:
+                    currSudoku[row][col] = 0
+                else:
+                    break
+
+    return currSudoku
+
+def nBruteforceSolutions(origSudoku, n):
+    sols = []
+    solution = bruteforceSolution(origSudoku, origSudoku)
+
+    while len(sols) < n:
+        sols.append(solution)
+        tamperedSolution = tamperLastElemInSudoku(origSudoku, solution)
+
+        if tamperedSolution is False:
+            break
+        
+        solution = bruteforceSolution(origSudoku, tamperedSolution)
+
+        if solution is False:
+            break
+
+    for solution in sols:
+        print(py.matrix(solution))
+
+
 def main():
     initPossiblesList()
 
-    while sudokuHasZeroes():
-    # for n in range(20):
+    while sudokuHasZeroes(unsolved_sudoku):
+        temp_sudoku = copy.deepcopy(unsolved_sudoku)
+
         shortlistPossible()
         updateSudoku()
         combineMultiplePossibilitiesForSudoku()
+        
+        if temp_sudoku == unsolved_sudoku:
+            print("Handcrafted Algorithm failing at finding solution, attempting bruteforce instead")
+            break
 
-    printSudoku()
+    print(py.matrix(bruteforceSolution(unsolved_sudoku, unsolved_sudoku)))
 
 main()
