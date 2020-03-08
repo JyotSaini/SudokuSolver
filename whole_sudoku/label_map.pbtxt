@@ -1,0 +1,49 @@
+item {
+    id: 1
+    name: 'sudoku_1'
+}
+
+item {
+    id: 2
+    name: 'sudoku_2'
+}
+
+item {
+    id: 3
+    name: 'sudoku_3'
+}
+
+item {
+    id: 4
+    name: 'sudoku_4'
+}
+
+item {
+    id: 5
+    name: 'sudoku_5'
+}
+
+item {
+    id: 6
+    name: 'sudoku_6'
+}
+
+item {
+    id: 7
+    name: 'sudoku_7'
+}
+
+item {
+    id: 8
+    name: 'sudoku_8'
+}
+
+item {
+    id: 9
+    name: 'sudoku_9'
+}
+
+item {
+    id: 10
+    name: 'sudoku_empty_cell'
+}
