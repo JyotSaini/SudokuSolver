@@ -1,0 +1,22 @@
+TensorFlow 2.0 Upgrade Script
+-----------------------------
+Converted 1 files
+Detected 0 issues that require attention
+--------------------------------------------------------------------------------
+================================================================================
+Detailed log follows:
+
+================================================================================
+--------------------------------------------------------------------------------
+Processing file '.\\parseImage.py'
+ outputting to './parseImage_v2.py'
+--------------------------------------------------------------------------------
+
+39:19: INFO: Renamed 'tf.GraphDef' to 'tf.compat.v1.GraphDef'
+40:9: INFO: Renamed 'tf.gfile.GFile' to 'tf.io.gfile.GFile'
+64:13: INFO: Renamed 'tf.Session' to 'tf.compat.v1.Session'
+66:18: INFO: Renamed 'tf.get_default_graph' to 'tf.compat.v1.get_default_graph'
+76:39: INFO: Renamed 'tf.get_default_graph' to 'tf.compat.v1.get_default_graph'
+98:27: INFO: Renamed 'tf.get_default_graph' to 'tf.compat.v1.get_default_graph'
+--------------------------------------------------------------------------------
+
